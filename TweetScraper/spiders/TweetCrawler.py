@@ -104,6 +104,17 @@ class TweetScraper(CrawlSpider):
                 else:
                     tweet['nbr_reply'] = 0
 
+                # original tweet the response is reply to fix
+                def conversation():
+                    is_reply_to = item.xpath('.//@data-conversation-id').extract()
+                    IDz = item.xpath('.//@data-tweet-id').extract()
+                    if is_reply_to[0] == IDz[0]:
+                        tweet['is_reply_to'] = "No"
+                    else:
+                        tweet['is_reply_to'] = is_reply_to[0]
+
+                conversation()
+
                 tweet['datetime'] = datetime.fromtimestamp(int(
                     item.xpath('.//div[@class="stream-item-header"]/small[@class="time"]/a/span/@data-time').extract()[
                         0])).strftime('%Y-%m-%d %H:%M:%S')

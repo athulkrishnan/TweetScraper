@@ -17,6 +17,7 @@ class Tweet(Item):
     nbr_reply = Field()    # nbr of reply
 
     is_reply = Field()   # boolean if the tweet is a reply or not
+    is_reply_to = Field()   # original tweet the response is reply to
     is_retweet = Field() # boolean if the tweet is just a retweet of another tweet
 
     has_image = Field() # True/False, whether a tweet contains images
