@@ -28,6 +28,7 @@ class TweetScraper(CrawlSpider):
         self.query = query
         self.url = "https://twitter.com/i/search/timeline?l={}".format(lang)
 
+
         if not top_tweet:
             self.url = self.url + "&f=tweets"
 
