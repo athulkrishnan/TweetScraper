@@ -74,7 +74,7 @@ class SaveToPostgresPipeline(object):
         self.connection = psycopg2.connect(dbname = settings['PGDB'], user = settings['PGUSER'], password = settings['PGPASS'])
         self.cursor = self.connection.cursor()
         self.clock = datetime.now()
-        self.tablename = keywords+(str(datetime.now()).replace(" ", "-").replace(":", "_").replace("-", "_").replace(".", "_"))
+        self.tablename = (str(keywords).replace(" ", "_"))+(str(datetime.now()).replace(" ", "_").replace(":", "_").replace("-", "_").replace(".", "_"))
         # self.tablename = keywords.replace(" ", "_")
 
         self.cursor.execute("CREATE TABLE IF NOT EXISTS " + self.tablename + "(\
