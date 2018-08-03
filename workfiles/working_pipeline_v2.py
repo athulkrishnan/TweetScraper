@@ -6,7 +6,6 @@ import pymongo
 import json
 import os
 import time
-import datetime
 
 # Custom tablename Stuff
 from spiders.TweetCrawler import *
@@ -73,43 +72,37 @@ class SaveToPostgresPipeline(object):
     def __init__(self):
         self.connection = psycopg2.connect(dbname = settings['PGDB'], user = settings['PGUSER'], password = settings['PGPASS'])
         self.cursor = self.connection.cursor()
-        self.clock = datetime.now()
-        self.tablename = keywords+(str(datetime.now()).replace(" ", "-").replace(":", "_").replace("-", "_").replace(".", "_"))
-        # self.tablename = keywords.replace(" ", "_")
+        self.tablename = keywords
 
         self.cursor.execute("CREATE TABLE IF NOT EXISTS " + self.tablename + "(\
-            timestamp TIMESTAMP,\
             id BIGINT PRIMARY KEY,\
             user_id BIGINT,\
-            url VARCHAR(2048),\
             username VARCHAR(36),\
             text VARCHAR(2048),\
             is_reply BOOLEAN,\
-            is_reply_to VARCHAR(100),\
             is_retweet BOOLEAN,\
             reply_count INT,\
             favorite_count INT,\
-            retweet_count INT\
+            retweet_count INT,\
+            timestamp TIMESTAMP\
         )")
         self.connection.commit()
-        self.insertTweetStatement = "INSERT INTO " + self.tablename + " VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)".format(settings['POSTGRES_TWEET_TABLE'])
+        self.insertTweetStatement = "INSERT INTO " + self.tablename + " VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)".format(settings['POSTGRES_TWEET_TABLE'])
 
     def process_item(self, item, spider):
 
         if isinstance(item, Tweet):
             self.cursor.execute(self.insertTweetStatement, (
-            item['datetime'],
             item['ID'],
             item['user_id'],
-            item['url'],
             item['usernameTweet'],
             item['text'],
             item['is_reply'],
-            item['is_reply_to'],
             item['is_retweet'],
             item['nbr_reply'],
             item['nbr_favorite'],
-            item['nbr_retweet']
+            item['nbr_retweet'],
+            item['datetime']
           ))
 
         self.connection.commit()

@@ -26,6 +26,8 @@ class TweetScraper(CrawlSpider):
     def __init__(self, query='', lang='', crawl_user=False, top_tweet=False):
 
         self.query = query
+        global keywords
+        keywords = self.query
         self.url = "https://twitter.com/i/search/timeline?l={}".format(lang)
 
 

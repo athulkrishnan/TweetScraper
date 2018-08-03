@@ -12,9 +12,9 @@ SPIDER_MODULES = ['TweetScraper.spiders']
 NEWSPIDER_MODULE = 'TweetScraper.spiders'
 ITEM_PIPELINES = {
     # 'TweetScraper.pipelines.SaveToFilePipeline':100,
-    'TweetScraper.pipelines.SaveToMongoPipeline':100, # replace `SaveToFilePipeline` with this to use MongoDB
+    # 'TweetScraper.pipelines.SaveToMongoPipeline':100, # replace `SaveToFilePipeline` with this to use MongoDB
     # 'TweetScraper.pipelines.SavetoMySQLPipeline':100, # replace `SaveToFilePipeline` with this to use MySQL
-    #'TweetScraper.pipelines.SaveToPostgresPipeline':100,
+    'TweetScraper.pipelines.SaveToPostgresPipeline':100,
 }
 
 # settings for where to save data on disk
@@ -34,3 +34,5 @@ PGPORT = 5432
 PGUSER = "postgres"
 PGPASS = "password123"
 PGDB = "TweetScraper"
+POSTGRES_TWEET_TABLE = "tweet" # collection name to save tweets
+POSTGRES_USER_TABLE  = "user"   # collection name to save users
