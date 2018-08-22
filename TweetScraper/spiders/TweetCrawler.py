@@ -4,9 +4,12 @@ from scrapy.conf import settings
 from scrapy import http
 from scrapy.shell import inspect_response  # for debugging
 import re
+from .. import pipelines as ppl
 import json
 import time
 import logging
+from decimal import Decimal
+
 try:
     from urllib import quote  # Python 2.X
 except ImportError:
@@ -122,38 +125,39 @@ class TweetScraper(CrawlSpider):
                     item.xpath('.//div[@class="stream-item-header"]/small[@class="time"]/a/span/@data-time').extract()[
                         0])).strftime('%Y-%m-%d %H:%M:%S')
 
+                # DISABLED
                 ### get photo
-                has_cards = item.xpath('.//@data-card-type').extract()
-                if has_cards and has_cards[0] == 'photo':
-                    tweet['has_image'] = True
-                    tweet['images'] = item.xpath('.//*/div/@data-image-url').extract()
-                elif has_cards:
-                    logger.debug('Not handle "data-card-type":\n%s' % item.xpath('.').extract()[0])
-
-                ### get animated_gif
-                has_cards = item.xpath('.//@data-card2-type').extract()
-                if has_cards:
-                    if has_cards[0] == 'animated_gif':
-                        tweet['has_video'] = True
-                        tweet['videos'] = item.xpath('.//*/source/@video-src').extract()
-                    elif has_cards[0] == 'player':
-                        tweet['has_media'] = True
-                        tweet['medias'] = item.xpath('.//*/div/@data-card-url').extract()
-                    elif has_cards[0] == 'summary_large_image':
-                        tweet['has_media'] = True
-                        tweet['medias'] = item.xpath('.//*/div/@data-card-url').extract()
-                    elif has_cards[0] == 'amplify':
-                        tweet['has_media'] = True
-                        tweet['medias'] = item.xpath('.//*/div/@data-card-url').extract()
-                    elif has_cards[0] == 'summary':
-                        tweet['has_media'] = True
-                        tweet['medias'] = item.xpath('.//*/div/@data-card-url').extract()
-                    elif has_cards[0] == '__entity_video':
-                        pass  # TODO
-                        # tweet['has_media'] = True
-                        # tweet['medias'] = item.xpath('.//*/div/@data-src').extract()
-                    else:  # there are many other types of card2 !!!!
-                        logger.debug('Not handle "data-card2-type":\n%s' % item.xpath('.').extract()[0])
+                # has_cards = item.xpath('.//@data-card-type').extract()
+                # if has_cards and has_cards[0] == 'photo':
+                #     tweet['has_image'] = True
+                #     tweet['images'] = item.xpath('.//*/div/@data-image-url').extract()
+                # elif has_cards:
+                #     logger.debug('Not handle "data-card-type":\n%s' % item.xpath('.').extract()[0])
+                #
+                # ### get animated_gif
+                # has_cards = item.xpath('.//@data-card2-type').extract()
+                # if has_cards:
+                #     if has_cards[0] == 'animated_gif':
+                #         tweet['has_video'] = True
+                #         tweet['videos'] = item.xpath('.//*/source/@video-src').extract()
+                #     elif has_cards[0] == 'player':
+                #         tweet['has_media'] = True
+                #         tweet['medias'] = item.xpath('.//*/div/@data-card-url').extract()
+                #     elif has_cards[0] == 'summary_large_image':
+                #         tweet['has_media'] = True
+                #         tweet['medias'] = item.xpath('.//*/div/@data-card-url').extract()
+                #     elif has_cards[0] == 'amplify':
+                #         tweet['has_media'] = True
+                #         tweet['medias'] = item.xpath('.//*/div/@data-card-url').extract()
+                #     elif has_cards[0] == 'summary':
+                #         tweet['has_media'] = True
+                #         tweet['medias'] = item.xpath('.//*/div/@data-card-url').extract()
+                #     elif has_cards[0] == '__entity_video':
+                #         pass  # TODO
+                #         # tweet['has_media'] = True
+                #         # tweet['medias'] = item.xpath('.//*/div/@data-src').extract()
+                #     else:  # there are many other types of card2 !!!!
+                #         logger.debug('Not handle "data-card2-type":\n%s' % item.xpath('.').extract()[0])
 
                 is_reply = item.xpath('.//div[@class="ReplyingToContextBelowAuthor"]').extract()
                 tweet['is_reply'] = is_reply != []
@@ -182,3 +186,78 @@ class TweetScraper(CrawlSpider):
         if extracted:
             return extracted[0]
         return default
+
+    def closed(self, reason):
+        # Total Tweets Count
+        print("##################################################################################################################")
+        print("STATISTICS")
+
+        ppl.cursor.execute("SELECT count(url) AS total FROM " + ppl.tabname)
+        ppl.connection.commit()
+        total_tweets = (str(ppl.cursor.fetchall()).replace("L,","").replace("(","").replace(")","").replace("[","").replace("]","").replace(" ",""))
+        print "Tweets: " + str(total_tweets)
+
+        # Retweets Count
+        ppl.cursor.execute("SELECT SUM(retweet_count) AS total_retweets FROM " + ppl.tabname)
+        ppl.connection.commit()
+        retweets = (str(ppl.cursor.fetchall()).replace("L,","").replace("(","").replace(")","").replace("[","").replace("]","").replace(" ",""))
+        print "Retweets: " + str(retweets)
+
+        # Favorites Count
+        ppl.cursor.execute("SELECT SUM(favorite_count) AS fav FROM " + ppl.tabname)
+        ppl.connection.commit()
+        favorites = (str(ppl.cursor.fetchall()).replace("L,","").replace("(","").replace(")","").replace("[","").replace("]","").replace(" ",""))
+        print "Favorites: " + str(favorites)
+
+        # Replies Count
+        ppl.cursor.execute("SELECT SUM(reply_count) AS replies FROM " + ppl.tabname)
+        ppl.connection.commit()
+        replies = (str(ppl.cursor.fetchall()).replace("L,","").replace("(","").replace(")","").replace("[","").replace("]","").replace(" ",""))
+        print "Replies: " + str(replies)
+
+        # Replies Count
+        ## Implement method to count only DISTINCT users -- NO DOUBLE COUNTING
+        ppl.cursor.execute("SELECT SUM(followers_count) AS fc FROM " + ppl.tabname)
+        ppl.connection.commit()
+        total_followers = (str(ppl.cursor.fetchall()).replace("L,","").replace("(","").replace(")","").replace("[","").replace("]","").replace(" ","").replace("Decimal","").replace("'","").replace(",",""))
+        print "Total Followers: " + str(total_followers)
+
+        ### Make Values Integers
+        try:
+            int_tt = int(str(total_tweets))
+        except:
+            int_tt = int(0)
+        try:
+            int_tf = int(str(total_followers))
+        except:
+            int_tf = int(0)
+        try:
+            int_f = int(str(favorites))
+        except:
+            int_f = int(0)
+
+        reach = int_tt*int_tf
+        print "Reach: " + str(reach)
+        try:
+            fav_follower_ratio_stager = (float(int_f))/(float(int_tf))
+        except:
+            fav_follower_ratio = int(0)
+        try:
+            fav_follower_ratio = ((fav_follower_ratio_stager))
+        except:
+            fav_follower_ratio = int(0)
+        print "Fav/Follower Ratio " + str(fav_follower_ratio)
+
+        print("##################################################################################################################")
+
+        ppl.cursor.execute("CREATE TABLE IF NOT EXISTS " + ppl.tabname + "_Stats" + "(\
+            total_tweets VARCHAR,\
+            retweets VARCHAR,\
+            favorites VARCHAR,\
+            replies VARCHAR,\
+            reach VARCHAR,\
+            fav_follower_ratio VARCHAR\
+        )")
+        ppl.connection.commit()
+        ppl.cursor.execute("INSERT INTO " + ppl.tabname + "_Stats" + " VALUES(%s, %s, %s, %s, %s, %s)", (total_tweets, retweets, favorites, replies, reach, fav_follower_ratio))
+        ppl.connection.commit()
