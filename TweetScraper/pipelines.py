@@ -57,7 +57,7 @@ class SaveToPostgresPipeline(object):
         self.cursor = self.connection.cursor()
         self.clock = datetime.now()
         start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.tablename = (str(spiders.TweetCrawler.keywords).replace(" ", "_").replace(":", "_").replace("#", "").replace("-", "_"))+ "_at_" +(str(start_time).replace(" ", "_").replace(":", "_").replace("-", "_").replace(".", "_"))
+        self.tablename = ((str(spiders.TweetCrawler.keywords)[:31]).replace(" ", "_").replace(":", "_").replace("#", "").replace("-", "_"))+ "_at_" +(str(start_time).replace(" ", "_").replace(":", "_").replace("-", "_").replace(".", "_"))
         global tabname
         tabname = self.tablename
         global connection
