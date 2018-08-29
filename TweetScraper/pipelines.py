@@ -19,10 +19,10 @@ import tweepy
 from tweepy import OAuthHandler
 
 # Temporarily using Amogh's Keys
-CONSUMER_KEY = ''
-CONSUMER_SECRET = ''
-ACCESS_KEY = ''
-ACCESS_SECRET = ''
+CONSUMER_KEY = 'hcwZphJGh2jFUn2y03hBLyQyx'
+CONSUMER_SECRET = 'ofi9o68Q7jCY3tAo00P0ervLcpHdVqlfNy1pbL7KQ3cGDthCTa'
+ACCESS_KEY = '4002557415-MSa5YxOKeKOwu009Q8No35JA3fzLYvnvGIcrk3x'
+ACCESS_SECRET = 'Hn74FZiy9usvOi0yhNSS1Kbn33BTMxRTLDlAeDWkVYWfg'
 
 auth = OAuthHandler(CONSUMER_KEY,CONSUMER_SECRET)
 api = tweepy.API(auth)
